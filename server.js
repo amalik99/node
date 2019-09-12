@@ -11,7 +11,7 @@ const express = require('express');
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
-// App
+// App change
 const app = express();
 app.get('/', (req, res) => {
 	let name = 'world';
