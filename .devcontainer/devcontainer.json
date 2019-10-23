@@ -1,6 +1,5 @@
 {
     "name": "Node.js Sample",
-    "image": "meanjs/mean:latest",
     "appPort": 3000,
     "settings": {
         "peacock.remoteColor": "#0000FF"
