@@ -1,34 +1,62 @@
-#-----------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See LICENSE in the project root for license information.
-#-----------------------------------------------------------------------------------------
+# Build:
+# docker build -t meanjs/mean .
+#
+# Run:
+# docker run -it meanjs/mean
+#
+# Compose:
+# docker-compose up -d
 
-FROM node:lts
+FROM ubuntu:latest
+MAINTAINER MEAN.JS
 
-# Configure apt
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
-   && apt-get -y install --no-install-recommends apt-utils 2>&1
+# 80 = HTTP, 443 = HTTPS, 3000 = MEAN.JS server, 35729 = livereload, 8080 = node-inspector
+EXPOSE 80 443 3000 35729 8080
 
-# Verify git and process tools are installed
-RUN apt-get install -y git procps
+# Set development environment as default
+ENV NODE_ENV development
 
-# Remove outdated yarn from /opt and install via package 
-# so it can be easily updated via apt-get upgrade yarn
-RUN rm -rf /opt/yarn-* \
-    && rm -f /usr/local/bin/yarn \
-    && rm -f /usr/local/bin/yarnpkg \
-    && apt-get install -y curl apt-transport-https lsb-release \
-    && curl -sS https://dl.yarnpkg.com/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/pubkey.gpg | apt-key add - 2>/dev/null \
-    && echo "deb https://dl.yarnpkg.com/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get update \
-    && apt-get -y install --no-install-recommends yarn
+# Install Utilities
+RUN apt-get update -q  \
+ && apt-get install -yqq \
+ curl \
+ git \
+ ssh \
+ gcc \
+ make \
+ build-essential \
+ libkrb5-dev \
+ sudo \
+ apt-utils \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Install eslint
-RUN npm install -g eslint
+# Install nodejs
+RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+RUN sudo apt-get install -yq nodejs \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Clean up
-RUN apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
-ENV DEBIAN_FRONTEND=dialog
+# Install MEAN.JS Prerequisites
+RUN npm install --quiet -g gulp bower yo mocha karma-cli pm2 && npm cache clean
+
+RUN mkdir -p /opt/mean.js/public/lib
+WORKDIR /opt/mean.js
+
+# Copies the local package.json file to the container
+# and utilities docker container cache to not needing to rebuild
+# and install node_modules/ everytime we build the docker, but only
+# when the local package.json file changes.
+# Install npm packages
+COPY package.json /opt/mean.js/package.json
+RUN npm install --quiet && npm cache clean
+
+# Install bower packages
+COPY bower.json /opt/mean.js/bower.json
+COPY .bowerrc /opt/mean.js/.bowerrc
+RUN bower install --quiet --allow-root --config.interactive=false
+
+COPY . /opt/mean.js
+
+# Run MEAN.JS server
+CMD npm install && npm start
