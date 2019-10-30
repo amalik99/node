@@ -5,7 +5,7 @@
     "settings": {
         "peacock.remoteColor": "#0000FF"
     },
-    "postCreateCommand": ".devcontainer/postCreate.sh",
+    "postCreateCommand": "chmod +x postCreate.sh && sudo .devcontainer/postCreate.sh",
     "extensions": [
         "dbaeumer.vscode-eslint",
         "johnpapa.vscode-peacock"
