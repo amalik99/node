@@ -5,6 +5,7 @@
     "settings": {
         "peacock.remoteColor": "#0000FF"
     },
+    "postCreateCommand": "postCreate.sh",
     "extensions": [
         "dbaeumer.vscode-eslint",
         "johnpapa.vscode-peacock"
