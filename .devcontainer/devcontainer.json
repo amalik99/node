@@ -1,6 +1,6 @@
 {
     "name": "Node.js Sample",
-    //"dockerFile": "Dockerfile",
+    "dockerFile": "Dockerfile",
     "containerUser": "containerUser",
     "remoteUser": "remoteUser",
     "appPort": 3000,
